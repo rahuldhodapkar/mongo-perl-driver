@@ -26,6 +26,7 @@ use Moo;
 
 use MongoDB::_Constants;
 use Types::Standard qw(
+    Maybe
     Any
     InstanceOf
     Num
@@ -75,6 +76,11 @@ has batch_size => (
     isa      => Num,
 );
 
+has max_time_ms => (
+    is       => 'ro',
+    isa      => Maybe[Num],
+);
+
 with $_ for qw(
   MongoDB::Role::_PrivateConstructor
   MongoDB::Role::_DatabaseOp
@@ -91,7 +97,7 @@ sub execute {
 
     return $res;
 }
-    
+
 sub _command_get_more {
     my ( $self, $link ) = @_;
 
@@ -99,23 +105,23 @@ sub _command_get_more {
         getMore         => $self->cursor_id,
         collection      => $self->coll_name,
         $self->batch_size > 0 ? (batchSize => $self->batch_size) : (),
-        # maxTimeMS     => XXX unimplemented
+        defined $self->max_time_ms ? (maxTimeMS => $self->max_time_ms) : (),
     );
 
     my $res = $self->_send_command( $link, $cmd );
     my $c = $res->{cursor};
     my $batch = $c->{nextBatch};
 
-    return { 
+    return {
         cursor_id       => $c->{id},
         flags           => {},
         starting_from   => 0,
         number_returned => scalar @$batch,
         docs            => $batch,
-    }; 
+    };
 }
 
-sub _legacy_get_more { 
+sub _legacy_get_more {
     my ( $self, $link ) = @_;
 
     my ( $op_bson, $request_id ) = MongoDB::_Protocol::write_get_more( map { $self->$_ }
