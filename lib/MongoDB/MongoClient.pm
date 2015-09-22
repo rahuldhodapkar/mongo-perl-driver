@@ -61,6 +61,7 @@ use Types::Standard qw(
     Int
     Num
     Str
+    Maybe
 );
 
 use namespace::clean -except => 'meta';
@@ -822,6 +823,32 @@ sub _build_wtimeout {
     );
 }
 
+=attr read_concern
+
+Indicate the network durability a read much achieve before being included
+in a read.
+
+Defaults to 'local' (present on local machine).
+
+=cut
+
+has read_concern => (
+    is      => 'lazy',
+    isa     => Maybe[HashRef],
+    builder => '_build_read_concern',
+);
+
+sub _build_read_concern {
+    my ($self) = @_;
+    return $self->__uri_or_else(
+        u => 'readconcern',
+        e => 'read_concern',
+        d => {
+            level => 'local'
+        },
+    );
+}
+
 #--------------------------------------------------------------------------#
 # deprecated public attributes
 #--------------------------------------------------------------------------#
@@ -1097,6 +1124,7 @@ my @deferred_options = qw(
   password
   w
   wtimeout
+  read_concern
 );
 
 around BUILDARGS => sub {
@@ -1415,6 +1443,7 @@ sub get_database {
     return MongoDB::Database->new(
         read_preference => $self->read_preference,
         write_concern   => $self->write_concern,
+        read_concern    => $self->read_concern,
         bson_codec      => $self->bson_codec,
         max_time_ms     => $self->max_time_ms,
         ( $options ? %$options : () ),

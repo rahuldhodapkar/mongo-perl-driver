@@ -47,6 +47,7 @@ use Types::Standard qw(
     HashRef
     InstanceOf
     Str
+    Maybe
 );
 use Tie::IxHash;
 use Carp 'carp';
@@ -115,6 +116,21 @@ has write_concern => (
     isa      => WriteConcern,
     required => 1,
     coerce   => WriteConcern->coercion,
+);
+
+=attr read_concern
+
+A HashRef of the form
+
+    { 'level' : Str }
+
+which indicates the minimum network durability of reads to be returned
+
+=cut
+
+has read_concern => (
+    is       => 'ro',
+    isa      => Maybe[HashRef],
 );
 
 =attr max_time_ms
@@ -241,6 +257,7 @@ sub _build__op_args {
         bson_codec      => $self->bson_codec,
         coll_name       => $self->name,
         write_concern   => $self->write_concern,
+        read_concern    => $self->read_concern,
         read_preference => $self->read_preference,
         full_name       => join( ".", $self->database->name, $self->name ),
     };

@@ -37,6 +37,8 @@ use MongoDB::_Types qw(
 use Types::Standard qw(
     InstanceOf
     Str
+    HashRef
+    Maybe
 );
 use Carp 'carp';
 use boolean;
@@ -91,6 +93,21 @@ has write_concern => (
     isa      => WriteConcern,
     required => 1,
     coerce   => WriteConcern->coercion,
+);
+
+=attr read_concern
+
+A HashRef of the form
+
+    { 'level' : Str }
+
+which indicates the minimum network durability of reads to be returned
+
+=cut
+
+has read_concern => (
+    is       => 'ro',
+    isa      => Maybe[HashRef],
 );
 
 =attr max_time_ms
@@ -234,6 +251,7 @@ sub get_collection {
     return MongoDB::Collection->new(
         read_preference => $self->read_preference,
         write_concern   => $self->write_concern,
+        read_concern    => $self->read_concern,
         bson_codec      => $self->bson_codec,
         max_time_ms     => $self->max_time_ms,
         ( $options ? %$options : () ),
