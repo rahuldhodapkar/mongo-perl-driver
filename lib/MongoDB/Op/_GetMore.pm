@@ -91,7 +91,7 @@ sub execute {
     my ( $self, $link ) = @_;
 
     my $res =
-        $link->accepts_wire_version(3)
+        $link->accepts_wire_version(4)
       ? $self->_command_get_more( $link )
       : $self->_legacy_get_more( $link );
 
