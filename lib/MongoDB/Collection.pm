@@ -41,6 +41,7 @@ use MongoDB::_Types qw(
     BSONCodec
     NonNegNum
     ReadPreference
+    ReadConcern
     WriteConcern
 );
 use Types::Standard qw(
@@ -120,17 +121,19 @@ has write_concern => (
 
 =attr read_concern
 
-A HashRef of the form
+A L<MongoDB::ReadConcern> object.  May be initialized with a hash
+reference or a string that will be coerced into the level of read
+concern.
 
-    { 'level' : Str }
-
-which indicates the minimum network durability of reads to be returned
+By default it will be inherited from a L<MongoDB::Database> object.
 
 =cut
 
 has read_concern => (
     is       => 'ro',
-    isa      => Maybe[HashRef],
+    isa      => ReadConcern,
+    required => 1,
+    coerce   => ReadConcern->coercion,
 );
 
 =attr max_time_ms

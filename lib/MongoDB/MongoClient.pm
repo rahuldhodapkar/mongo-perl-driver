@@ -33,6 +33,7 @@ use MongoDB::Op::_Command;
 use MongoDB::Op::_FSyncUnlock;
 use MongoDB::ReadPreference;
 use MongoDB::WriteConcern;
+use MongoDB::ReadConcern;
 use MongoDB::_Topology;
 use MongoDB::_Constants;
 use MongoDB::_Credential;
@@ -823,29 +824,24 @@ sub _build_wtimeout {
     );
 }
 
-=attr read_concern
+=attr read_concern_level
 
-Indicate the network durability a read much achieve before being included
-in a read.
-
-Defaults to 'local' (present on local machine).
+An attribute to catch the level of read concern passed in an connection string
 
 =cut
 
-has read_concern => (
+has read_concern_level => (
     is      => 'lazy',
-    isa     => Maybe[HashRef],
-    builder => '_build_read_concern',
+    isa     => Str,
+    builder => '_build_read_concern_level',
 );
 
-sub _build_read_concern {
+sub _build_read_concern_level { 
     my ($self) = @_;
     return $self->__uri_or_else(
-        u => 'readconcern',
-        e => 'read_concern',
-        d => {
-            level => 'local'
-        },
+        u => 'readconcernlevel',
+        e => 'read_concern_level',
+        d => 'local',
     );
 }
 
@@ -987,6 +983,31 @@ sub _build__write_concern {
         ( $self->w        ? ( w        => $self->w )        : () ),
         ( $self->wtimeout ? ( wtimeout => $self->wtimeout ) : () ),
         ( $self->j        ? ( j        => $self->j )        : () ),
+    );
+}
+
+=attr read_concern
+
+Indicate the network durability a read much achieve before being included
+in a read.
+
+Defaults to 'local' (present on local machine).
+
+=cut
+
+has _read_concern => (
+    is     => 'lazy',
+    isa    => InstanceOf['MongoDB::ReadConcern'],
+    reader   => 'read_concern',
+    init_arg => undef,
+    builder  => '_build__read_concern',
+);
+
+sub _build__read_concern {
+    my ($self) = @_;
+    return MongoDB::ReadConcern->new(
+        ( $self->read_concern_level ? 
+            ( level => $self->read_concern_level ) : () ),
     );
 }
 

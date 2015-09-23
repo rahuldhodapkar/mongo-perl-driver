@@ -48,6 +48,7 @@ use Type::Library
   OrderedDoc
   PairArrayRef
   ReadPrefMode
+  ReadConcern
   ReadPreference
   ServerDesc
   ServerType
@@ -131,6 +132,8 @@ enum ReadPrefMode,
 
 class_type ReadPreference, { class => 'MongoDB::ReadPreference' };
 
+class_type ReadConcern, { class => 'MongoDB::ReadConcern' };
+
 class_type ServerDesc, { class => 'MongoDB::_Server' };
 
 enum ServerType,
@@ -198,6 +201,12 @@ coerce ReadPreference, from Str,
 
 coerce ReadPreference, from ArrayRef,
   via { require MongoDB::ReadPreference; MongoDB::ReadPreference->new( mode => $_->[0], tag_sets => $_->[1] ) };
+
+coerce ReadConcern, from Str,
+  via { require MongoDB::ReadConcern; MongoDB::ReadConcern->new( level => $_ ) };
+
+coerce ReadConcern, from HashRef,
+  via { require MongoDB::ReadConcern; MongoDB::ReadConcern->new($_) };
 
 coerce WriteConcern, from HashRef,
   via { require MongoDB::WriteConcern; MongoDB::WriteConcern->new($_) };

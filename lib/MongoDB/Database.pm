@@ -32,6 +32,7 @@ use MongoDB::_Types qw(
     BSONCodec
     NonNegNum
     ReadPreference
+    ReadConcern
     WriteConcern
 );
 use Types::Standard qw(
@@ -107,7 +108,9 @@ which indicates the minimum network durability of reads to be returned
 
 has read_concern => (
     is       => 'ro',
-    isa      => Maybe[HashRef],
+    isa      => ReadConcern,
+    required => 1,
+    coerce   => ReadConcern->coercion,
 );
 
 =attr max_time_ms
